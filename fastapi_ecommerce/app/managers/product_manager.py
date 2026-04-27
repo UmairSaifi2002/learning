@@ -151,10 +151,10 @@ class ProductManager:
             # For each field: use new value if provided, otherwise keep old value
             updated_product = Product(
                 id=product_id,
-                name = updated_fields.get("name", existing_product.name),
-                price = updated_fields.get("price", existing_product.price),
-                category = updated_fields.get("category", existing_product.category),
-                stock = updated_fields.get("stock", existing_product.stock)
+                name = updated_fields.get("name", existing_product['name']),
+                price = updated_fields.get("price", existing_product['price']),
+                category = updated_fields.get("category", existing_product['category']),
+                stock = updated_fields.get("stock", existing_product['stock'])
             )
 
             # Save to Database
@@ -184,7 +184,7 @@ class ProductManager:
             logger.warning(f"Product Id {product_id} not Found for Deletion")
             return False
         
-        product_name = products_db[product_id].name
+        product_name = products_db[product_id]['name']
         del products_db[product_id]
         logger.info(f"Product Deleted Successfully: {product_name}")
         return True

@@ -105,7 +105,7 @@ class UserManager:
         for user in users_db.values():
             # Case-insensitive comparison
             # "Ahmed@Example.com" and "ahmed@example.com" are the same
-            if user.email.lower() == email.lower():
+            if user['email'].lower() == email.lower():
                 logger.debug(f"Found user with email: {email}")
                 return user
         
@@ -199,8 +199,8 @@ class UserManager:
             # Create updated user - keep old values where no update was provided
             updated_user = User(
                 id=user_id,
-                name=update_dict.get("name", existing_user.name),
-                email=update_dict.get("email", existing_user.email),
+                name=update_dict.get("name", existing_user['name']),
+                email=update_dict.get("email", existing_user['email']),
             )
             
             # Save to database
