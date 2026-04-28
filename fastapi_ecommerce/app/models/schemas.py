@@ -11,7 +11,7 @@ Every class inherits from BaseModel.
 Every field has a type hint and optional validation constraints.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, List
 
 
@@ -33,7 +33,7 @@ class UserCreate(BaseModel):
         description="User's full name",
         examples=["Ahmed Khan"]
     )
-    email: str = Field(
+    email: EmailStr = Field(
         ...,
         min_length=5,
         max_length=100,

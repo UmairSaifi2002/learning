@@ -21,64 +21,66 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=List[Order])
-async def get_orders():
+async def get_orders(user_id: int = 1):
     """
-    View all placed orders.
+    View all placed orders for a specific user.
     
-    Returns:
-        List[Order]: All orders with their items and totals
+    Args:
+        user_id: The user's ID (query parameter). Default is 1.
+    
+    Example:
+        GET /orders?user_id=1
+        GET /orders?user_id=2
     """
-    logger.info("GET /orders")
+    logger.info(f"GET /orders - user_id={user_id}")
     
     try:
-        orders = OrderManager.get_all_orders()
-        logger.info(f"Returning {len(orders)} orders")
+        orders = OrderManager.get_all_orders(user_id=user_id)
+        logger.info(f"Returning {len(orders)} orders for user {user_id}")
         return orders
     except Exception as e:
-        logger.error(f"Error fetching orders: {str(e)}")
+        logger.error(f"Error fetching orders for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch orders"
         )
     
 @router.post("/", response_model=Order, status_code=status.HTTP_201_CREATED)
-async def create_order():
+async def create_order(user_id: int = 1):
     """
-    Create an order using current cart items.
+    Create an order from a specific user's current cart items.
     
     This endpoint:
-    1. Get the current cart
-    2. Validate all items
-    3. Deduct stock from inventory
-    4. Create the order record
-    5. Clear the cart
-    6. Return the completed order
+    1. Gets the user's cart
+    2. Validates all items
+    3. Deducts stock from inventory
+    4. Creates the order for THIS user
+    5. Clears THIS user's cart
+    6. Returns the order
     
-    Returns:
-        Order: The completed order with ID, items, and timestamp
+    Args:
+        user_id: The user's ID (query parameter). Default is 1.
     
-    Raises:
-        400: If cart is empty, product missing, or insufficient stock
+    Example:
+        POST /orders?user_id=1
     """
-    logger.info("POST /orders")
+    logger.info(f"POST /orders - user_id={user_id}")
     
     try:
-        order = OrderManager.create_order()
+        order = OrderManager.create_order(user_id=user_id)
         logger.info(
-            f"Order created: ID {order.id}, "
-            f"total: ${order.total_amount:.2f}"
+            f"Order created for user {user_id}: "
+            f"ID {order.id}, total: ${order.total_amount:.2f}"
         )
         return order
-        
     except ValueError as e:
-        # Business rule violations (empty cart, missing product, no stock)
-        logger.warning(f"Order creation failed: {str(e)}")
+        logger.warning(f"Order creation failed for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
-        logger.error(f"Error creating order: {str(e)}")
+        logger.error(f"Error creating order for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create order"

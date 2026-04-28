@@ -131,8 +131,9 @@ class CartManager:
             f"Adding to cart: product_id={item_data.product_id}, "
             f"quantity={item_data.quantity}"
         )
-
+    
         # VALIDATION STEP 1: Does the product exist?
+        # product is a DICTIONARY, not a Product object
         product = products_db.get(item_data.product_id)
         if not product:
             logger.error(
@@ -143,34 +144,34 @@ class CartManager:
             )
         
         # VALIDATION STEP 2: Is there enough stock?
-        if product.stock < item_data.quantity:
+        # Use BRACKET notation because product is a dict
+        if product["stock"] < item_data.quantity:                          # ← FIXED
             logger.error(
-                f"Insufficient stock for '{product.name}': "
-                f"requested={item_data.quantity}, available={product.stock}"
+                f"Insufficient stock for '{product['name']}': "            # ← FIXED
+                f"requested={item_data.quantity}, available={product['stock']}"  # ← FIXED
             )
             raise ValueError(
-                f"Insufficient stock for '{product.name}'. "
-                f"Available: {product.stock}, Requested: {item_data.quantity}"
+                f"Insufficient stock for '{product['name']}'. "           # ← FIXED
+                f"Available: {product['stock']}, Requested: {item_data.quantity}"  # ← FIXED
             )
         
         # Get the user's cart (creates empty list if first time)
         cart_items = cls._get_user_cart(user_id)
-
+    
         # Check if this product is already in the cart
-        # next() finds the first matching item, or returns None
         existing_item = next(
             (item for item in cart_items if item.product_id == item_data.product_id), None
         )
-
+    
         if existing_item:
             # Product is ALREADY in cart - increase quantity
             new_quantity = existing_item.quantity + item_data.quantity
             
             # Double-check stock for the new total quantity
-            if product.stock < new_quantity:
+            if product["stock"] < new_quantity:                           # ← FIXED
                 raise ValueError(
-                    f"Insufficient stock for '{product.name}'. "
-                    f"Available: {product.stock}, "
+                    f"Insufficient stock for '{product['name']}'. "      # ← FIXED
+                    f"Available: {product['stock']}, "                   # ← FIXED
                     f"Requested: {new_quantity} "
                     f"(already had {existing_item.quantity} in cart)"
                 )
@@ -178,34 +179,34 @@ class CartManager:
             # Update the existing item
             existing_item.quantity = new_quantity
             existing_item.total_price = round(
-                new_quantity * product.price, 2
+                new_quantity * product["price"], 2                        # ← FIXED
             )
             
             logger.info(
-                f"Updated '{product.name}' quantity to {new_quantity}"
+                f"Updated '{product['name']}' quantity to {new_quantity}"  # ← FIXED
             )
             return (
-                f"Updated '{product.name}' quantity to {new_quantity}. "
+                f"Updated '{product['name']}' quantity to {new_quantity}. "  # ← FIXED
                 f"Total price: ${existing_item.total_price:.2f}"
             )
-
+    
         else:
             # Product is NOT in cart yet - add as new item
             new_item = CartItem(
                 product_id=item_data.product_id,
-                product_name=product.name,
+                product_name=product["name"],                              # ← FIXED
                 quantity=item_data.quantity,
-                unit_price=product.price,
-                total_price=round(item_data.quantity * product.price, 2)
+                unit_price=product["price"],                               # ← FIXED
+                total_price=round(item_data.quantity * product["price"], 2)  # ← FIXED
             )
             
             cart_items.append(new_item)
             
             logger.info(
-                f"Added '{product.name}' to cart (qty: {item_data.quantity})"
+                f"Added '{product['name']}' to cart (qty: {item_data.quantity})"  # ← FIXED
             )
             return (
-                f"Added '{product.name}' to cart. "
+                f"Added '{product['name']}' to cart. "                     # ← FIXED
                 f"Quantity: {item_data.quantity}, "
                 f"Total price: ${new_item.total_price:.2f}"
             )
