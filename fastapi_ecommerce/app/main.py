@@ -24,6 +24,86 @@ from app.routers import products, users, cart, orders
 # Adding middleware for timing requests
 from app.middleware.timing import add_process_time_header
 
+# Import database session and table creation function
+from app.db.session import create_db_and_tables, engine
+
+# Import logger for structured logging
+from app.utils.loggers import logger
+
+
+# ============================================
+# LIFESPAN FUNCTION
+# ============================================
+
+def lifespan(app: FastAPI):
+    """
+    Application lifespan handler.
+    
+    This function manages what happens when the server STARTS and STOPS.
+    
+    STARTUP (before yield):
+    - Called automatically when you run: poetry run uvicorn app.main:app
+    - Creates database tables if they don't exist
+    - Logs the startup information
+    
+    SHUTDOWN (after yield):
+    - Called automatically when you press CTRL+C
+    - Closes database connections
+    - Logs the shutdown information
+    
+    HOW IT WORKS:
+    FastAPI treats this function as a GENERATOR.
+    - It calls next() once → runs code until yield → STARTUP complete
+    - Server runs and handles requests
+    - When stopping, it calls next() again → runs code after yield → SHUTDOWN
+    
+    Args:
+        app: The FastAPI application instance (passed automatically by FastAPI)
+    """
+    # ╔═══════════════════════════════════════════════════════════╗
+    # ║                    SERVER STARTUP                          ║
+    # ╚═══════════════════════════════════════════════════════════╝
+    
+    logger.info("=" * 60)
+    logger.info(f"🚀 STARTING SERVER: {os.getenv('APP_NAME', 'E-Commerce API')}")
+    logger.info(f"📋 Version: {os.getenv('APP_VERSION', '1.0.0')}")
+    logger.info("=" * 60)
+    
+    # Create all database tables
+    # This ensures the tables exist before any request arrives
+    # If tables already exist, this does nothing (safe to run multiple times)
+    logger.info("📊 Checking database tables...")
+    create_db_and_tables()
+    logger.info("✅ Database tables ready")
+    
+    # The YIELD marks the end of STARTUP and the beginning of SHUTDOWN
+    # Everything above this line runs at startup
+    # Everything below this line runs at shutdown
+
+    # Print to console directly too (backup)
+    print("✅ STARTUP COMPLETE: Server is ready")
+
+    yield
+    
+    # ╔═══════════════════════════════════════════════════════════╗
+    # ║                    SERVER SHUTDOWN                         ║
+    # ╚═══════════════════════════════════════════════════════════╝
+    
+    logger.info("=" * 60)
+    logger.info("🛑 SHUTTING DOWN SERVER...")
+    
+    # Close all database connections
+    # engine.dispose() closes the connection pool
+    # This ensures no connections are left hanging
+    engine.dispose()
+    logger.info("📊 Database connections closed")
+    
+    logger.info("✅ Server shutdown complete")
+    logger.info("=" * 60)
+
+    print("✅ SHUTDOWN COMPLETE")
+
+
 
 def create_app() -> FastAPI:
     """
@@ -63,6 +143,7 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
+        lifespan=lifespan,  # Attach the lifespan function for startup/shutdown handling
     )
     
     # Configure CORS middleware
@@ -79,6 +160,8 @@ def create_app() -> FastAPI:
     # This attaches the endpoints defined in each router file
     # to the main application
     register_routers(app)
+
+    logger.info("✅ Application instance created and configured")
     
     return app
 
@@ -106,6 +189,7 @@ def register_routers(app: FastAPI):
     app.include_router(users.router)
     app.include_router(cart.router)
     app.include_router(orders.router)
+    logger.info("📌 Routers registered: products, users, cart, orders")
 
 
 # ============================================
