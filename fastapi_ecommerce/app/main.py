@@ -30,78 +30,149 @@ from app.db.session import create_db_and_tables, engine
 # Import logger for structured logging
 from app.utils.loggers import logger
 
+# Import settings for application configuration
+from app.config.settings import settings
+
 
 # ============================================
 # LIFESPAN FUNCTION
+# ============================================
+
+# ============================================
+# LIFESPAN: ENVIRONMENT-AWARE
 # ============================================
 
 def lifespan(app: FastAPI):
     """
     Application lifespan handler.
     
-    This function manages what happens when the server STARTS and STOPS.
+    This function runs code at SERVER STARTUP and SERVER SHUTDOWN.
+    The 'yield' keyword separates startup from shutdown.
     
-    STARTUP (before yield):
-    - Called automatically when you run: poetry run uvicorn app.main:app
-    - Creates database tables if they don't exist
-    - Logs the startup information
+    Behavior changes based on IS_DEVELOPMENT:
     
-    SHUTDOWN (after yield):
-    - Called automatically when you press CTRL+C
-    - Closes database connections
-    - Logs the shutdown information
+    DEVELOPMENT (IS_DEVELOPMENT=true):
+    - Detailed startup/shutdown logs
+    - Database table verification with output
+    - Development-specific warnings
     
-    HOW IT WORKS:
-    FastAPI treats this function as a GENERATOR.
-    - It calls next() once → runs code until yield → STARTUP complete
-    - Server runs and handles requests
-    - When stopping, it calls next() again → runs code after yield → SHUTDOWN
-    
-    Args:
-        app: The FastAPI application instance (passed automatically by FastAPI)
+    PRODUCTION (IS_DEVELOPMENT=false):
+    - Minimal startup/shutdown logs
+    - Silent database operations
+    - No development warnings
     """
+    
     # ╔═══════════════════════════════════════════════════════════╗
     # ║                    SERVER STARTUP                          ║
     # ╚═══════════════════════════════════════════════════════════╝
     
-    logger.info("=" * 60)
-    logger.info(f"🚀 STARTING SERVER: {os.getenv('APP_NAME', 'E-Commerce API')}")
-    logger.info(f"📋 Version: {os.getenv('APP_VERSION', '1.0.0')}")
-    logger.info("=" * 60)
+    # ============================================
+    # DEVELOPMENT: Detailed Startup
+    # ============================================
+    if settings.IS_DEVELOPMENT:
+        logger.info("=" * 60)
+        logger.info(f"🚀 STARTING SERVER")
+        logger.info(f"📋 Application: {settings.APP_NAME}")
+        logger.info(f"📌 Version: {settings.APP_VERSION}")
+        logger.info(f"🌍 Environment: {settings.ENVIRONMENT_TYPE}")
+        logger.info(f"🔧 Host: {settings.APP_HOST}:{settings.APP_PORT}")
+        logger.info(f"📊 Database: {settings.DATABASE_HOST}:{settings.DATABASE_PORT}/{settings.DATABASE_NAME}")
+        logger.info(f"🗄️  DB Pool Size: {settings.DATABASE_POOL_SIZE}")
+        logger.info(f"🔄 SQL Logging: {'ON' if settings.DATABASE_ECHO else 'OFF'}")
+        logger.info(f"📝 Log Level: {settings.LOG_LEVEL}")
+        logger.info(f"🌐 CORS Origins: {settings.CORS_ORIGINS_LIST}")
+        logger.info(f"🐛 Debug Mode: {'ON' if settings.APP_DEBUG else 'OFF'}")
+        logger.info("=" * 60)
+    else:
+        # ============================================
+        # PRODUCTION: Minimal Startup
+        # ============================================
+        logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+        logger.info(f"Environment: PRODUCTION")
     
-    # Create all database tables
-    # This ensures the tables exist before any request arrives
-    # If tables already exist, this does nothing (safe to run multiple times)
-    logger.info("📊 Checking database tables...")
-    create_db_and_tables()
-    logger.info("✅ Database tables ready")
+    # ============================================
+    # CREATE DATABASE TABLES
+    # ============================================
     
-    # The YIELD marks the end of STARTUP and the beginning of SHUTDOWN
-    # Everything above this line runs at startup
-    # Everything below this line runs at shutdown
-
-    # Print to console directly too (backup)
-    print("✅ STARTUP COMPLETE: Server is ready")
-
+    if settings.IS_DEVELOPMENT:
+        logger.info("📊 Checking database tables...")
+    
+    try:
+        create_db_and_tables()
+        
+        if settings.IS_DEVELOPMENT:
+            logger.info("✅ Database tables ready")
+            logger.info("💡 Tip: Visit http://127.0.0.1:8000/docs for API documentation")
+    except Exception as e:
+        logger.error(f"❌ Failed to create database tables: {str(e)}")
+        if settings.IS_DEVELOPMENT:
+            logger.error("💡 Check if MySQL is running and credentials are correct")
+            logger.error(f"   Connection: {settings.DATABASE_URL}")
+        raise  # Re-raise to prevent server from starting with broken DB
+    
+    # ============================================
+    # DEVELOPMENT-SPECIFIC WARNINGS
+    # ============================================
+    if settings.IS_DEVELOPMENT:
+        # Warn about development-only settings
+        if settings.CORS_ORIGINS == "*":
+            logger.warning("⚠️  CORS is set to '*' - ALL origins are allowed!")
+            logger.warning("   This is fine for development but NOT for production.")
+        
+        if settings.APP_DEBUG:
+            logger.warning("⚠️  Debug mode is ON - error details will be shown to clients.")
+            logger.warning("   This is fine for development but NOT for production.")
+        
+        if not settings.DATABASE_PASSWORD:
+            logger.warning("⚠️  Database password is empty! This is a security risk.")
+    
+    # ╔═══════════════════════════════════════════════════════════╗
+    # ║              THE DIVIDING LINE (yield)                     ║
+    # ║   Everything ABOVE runs at STARTUP                        ║
+    # ║   Everything BELOW runs at SHUTDOWN                       ║
+    # ╚═══════════════════════════════════════════════════════════╝
+    
     yield
     
     # ╔═══════════════════════════════════════════════════════════╗
     # ║                    SERVER SHUTDOWN                         ║
     # ╚═══════════════════════════════════════════════════════════╝
     
-    logger.info("=" * 60)
-    logger.info("🛑 SHUTTING DOWN SERVER...")
+    # ============================================
+    # DEVELOPMENT: Detailed Shutdown
+    # ============================================
+    if settings.IS_DEVELOPMENT:
+        logger.info("=" * 60)
+        logger.info("🛑 SHUTTING DOWN SERVER")
+        logger.info(f"📋 Application: {settings.APP_NAME}")
+        logger.info("=" * 60)
+    else:
+        # PRODUCTION: Minimal Shutdown
+        logger.info(f"Stopping {settings.APP_NAME}")
     
-    # Close all database connections
-    # engine.dispose() closes the connection pool
-    # This ensures no connections are left hanging
-    engine.dispose()
-    logger.info("📊 Database connections closed")
+    # ============================================
+    # CLOSE DATABASE CONNECTIONS
+    # ============================================
     
-    logger.info("✅ Server shutdown complete")
-    logger.info("=" * 60)
+    try:
+        engine.dispose()
+        
+        if settings.IS_DEVELOPMENT:
+            logger.info("📊 Database connections closed")
+    except Exception as e:
+        logger.error(f"❌ Error closing database connections: {str(e)}")
+    
+    # ============================================
+    # FINAL SHUTDOWN MESSAGE
+    # ============================================
+    
+    if settings.IS_DEVELOPMENT:
+        logger.info("✅ Server shutdown complete")
+        logger.info("=" * 60)
+        logger.info("👋 Goodbye! Server has stopped.")
+    else:
+        logger.info("Server stopped")
 
-    print("✅ SHUTDOWN COMPLETE")
 
 
 
@@ -121,8 +192,8 @@ def create_app() -> FastAPI:
     # Create the FastAPI instance with metadata from .env
     # This metadata appears in the auto-generated OpenAPI documentation
     app = FastAPI(
-        title=os.getenv("APP_NAME", "E-Commerce API"),
-        version=os.getenv("APP_VERSION", "1.0.0"),
+        title=settings.APP_NAME,
+        version=settings.APP_VERSION,
         description="""
         ## Simple E-Commerce API
         

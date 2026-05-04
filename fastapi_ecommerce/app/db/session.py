@@ -16,39 +16,7 @@ from typing import Annotated, Generator
 from dotenv import load_dotenv
 from fastapi import Depends
 from sqlmodel import Session, SQLModel, create_engine
-
-# Load .env
-load_dotenv()
-
-# ============================================
-# ENVIRONMENT CHECK
-# ============================================
-
-IS_DEVELOPMENT = os.getenv("IS_DEVELOPMENT", "false").lower() == "true"
-
-# ============================================
-# DATABASE CONFIGURATION
-# ============================================
-
-DB_USER = os.getenv("DATABASE_USER", "root")
-DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
-DB_HOST = os.getenv("DATABASE_HOST", "localhost")
-DB_PORT = os.getenv("DATABASE_PORT", "3306")
-DB_NAME = os.getenv("DATABASE_NAME", "ecommerce_db")
-
-MYSQL_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
-"""
-The connection URL tells SQLModel where to find the database.
-
-Format: mysql+pymysql://USER:PASSWORD@HOST:PORT/DATABASE_NAME
-
-IMPORTANT: 
-- Replace 'your_password' with your actual MySQL password
-- The database 'ecommerce_db' must exist, or MySQL must be configured
-  to create it automatically
-"""
-
+from app.config.settings import settings
 
 
 # ============================================
@@ -68,11 +36,15 @@ Parameters:
   Set to False in production
 - pool_size: Number of connections to keep open (default 5)
 """
+
 engine = create_engine(
-    MYSQL_URL,
-    echo=True,       # Logs all SQL queries to console
-    pool_size=10,    # Keep 10 connections ready in the pool
+    settings.DATABASE_URL,           # ← From settings
+    echo=settings.DATABASE_ECHO,     # ← From settings
+    pool_size=settings.DATABASE_POOL_SIZE,
+    pool_recycle=settings.DATABASE_POOL_RECYCLE,
+    pool_pre_ping=True,
 )
+
 
 # ============================================
 # TABLE CREATION FUNCTION
@@ -97,7 +69,7 @@ def create_db_and_tables():
 # SESSION FACTORY (PER-REQUEST SESSION)
 # ============================================
 
-def get_session():
+def get_session() -> Generator[Session, None, None]:
     """
     Create a NEW database session for each API request.
     
