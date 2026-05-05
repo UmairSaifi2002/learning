@@ -15,7 +15,9 @@ dependencies = [
     "sqlmodel (>=0.0.38,<0.0.39)",
     "pymysql (>=1.1.2,<2.0.0)",
     "sqlalchemy (>=2.0.49,<3.0.0)",
-    "pydantic-settings (>=2.14.0,<3.0.0)"
+    "pydantic-settings (>=2.14.0,<3.0.0)",
+    "aiomysql (>=0.3.2,<0.4.0)",
+    "cryptography (>=47.0.0,<48.0.0)"
 ]
 
 [tool.poetry]
@@ -26,3 +28,7 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 
+[dependency-groups]
+dev = [
+    "aiosqlite (>=0.22.1,<0.23.0)"
+]
