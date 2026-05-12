@@ -29,7 +29,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 
-from app.db.database import Base
+from app.db.base import Base
 
 
 # ============================================
