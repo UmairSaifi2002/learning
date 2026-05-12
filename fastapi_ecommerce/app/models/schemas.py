@@ -72,6 +72,7 @@ class User(BaseModel):
     id: int = Field(..., description="Unique user ID")
     name: str = Field(..., description="User's full name")
     email: str = Field(..., description="User's email")
+    # password: str = Field(..., min_length=6)
 
 
 # ============================================

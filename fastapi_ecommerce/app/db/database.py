@@ -187,7 +187,9 @@ def create_tables():
     This is SYNCHRONOUS because SQLAlchemy's create_all is sync.
     We call it once during startup, not during request handling.
     """
-    Base.metadata.create_all(bind=sync_engine)
+    # Import all models to register them in Base.metadata
+    from app.models import db_models  # Import all model files to register them
+    Base.metadata.create_all(bind=sync_engine) # <------- here we declare which engine we want to use for creating tables. We use the synchronous engine because create_all is a synchronous operation.
 
 
 # ============================================

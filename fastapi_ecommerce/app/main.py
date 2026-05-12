@@ -26,7 +26,10 @@ from app.routers import products, users, cart, orders
 from app.middleware.timing import add_process_time_header
 
 # Import database session and table creation function
-from app.db.session import create_db_and_tables, engine
+# from app.db.session import create_db_and_tables, engine
+# from app.db.database import create_tables, sync_engine, async_engine
+from app.db.sync import create_tables, sync_engine
+from app.db.async_db import async_engine
 
 # Import logger for structured logging
 from app.utils.loggers import logger
@@ -136,7 +139,8 @@ def lifespan(app: FastAPI):
         logger.info("📊 Checking database tables...")
     
     try:
-        create_db_and_tables()
+        # create_db_and_tables() # <---- Creating tables here from session.py file
+        create_tables() # <---- Creating tables here from database.py file
         
         if settings.IS_DEVELOPMENT:
             logger.info("✅ Database tables ready")
@@ -165,7 +169,7 @@ def lifespan(app: FastAPI):
             logger.warning("⚠️  Database password is empty! This is a security risk.")
     
     # ╔═══════════════════════════════════════════════════════════╗
-    # ║              THE DIVIDING LINE (yield)                     ║
+    # ║              THE DIVIDING LINE (yield)                    ║
     # ║   Everything ABOVE runs at STARTUP                        ║
     # ║   Everything BELOW runs at SHUTDOWN                       ║
     # ╚═══════════════════════════════════════════════════════════╝
@@ -173,7 +177,7 @@ def lifespan(app: FastAPI):
     yield
     
     # ╔═══════════════════════════════════════════════════════════╗
-    # ║                    SERVER SHUTDOWN                         ║
+    # ║                    SERVER SHUTDOWN                        ║
     # ╚═══════════════════════════════════════════════════════════╝
     
     # ============================================
@@ -193,7 +197,8 @@ def lifespan(app: FastAPI):
     # ============================================
     
     try:
-        engine.dispose()
+        sync_engine.dispose() # <---- Dispose sync engine to close all connections in the pool
+        # async_engine.dispose() # <---- Dispose async engine as well
         
         if settings.IS_DEVELOPMENT:
             logger.info("📊 Database connections closed")
@@ -258,7 +263,7 @@ def create_app() -> FastAPI:
     # Configure CORS middleware
     # This must be done BEFORE routes are registered
     # Middleware wraps all requests including route handling
-    # configure_cors(app)
+    # configure_cors(app) # <--- We can call this function to set up CORS based on settings
     # CORS Middleware
     app.add_middleware(
         CORSMiddleware,

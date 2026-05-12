@@ -1,16 +1,19 @@
 """
-Order Router
+Order Router - MySQL Database Version
 
 Handles HTTP requests for order endpoints.
+All endpoints use async database sessions.
 
 Endpoints:
     GET  /orders  - View all placed orders
     POST /orders  - Create an order from current cart
 """
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db import get_async_session, get_async_session_with_commit
 from app.managers.order_manager import OrderManager
 from app.models.schemas import Order
 from app.utils.loggers import logger
@@ -20,13 +23,18 @@ router = APIRouter(
     tags=["Orders"],
 )
 
+
 @router.get("/", response_model=List[Order])
-async def get_orders(user_id: int = 1):
+async def get_orders(
+    user_id: int = 1,
+    session: AsyncSession = Depends(get_async_session)  # ← ASYNC SESSION
+):
     """
     View all placed orders for a specific user.
     
     Args:
         user_id: The user's ID (query parameter). Default is 1.
+        session: Database session (injected automatically)
     
     Example:
         GET /orders?user_id=1
@@ -35,7 +43,12 @@ async def get_orders(user_id: int = 1):
     logger.info(f"GET /orders - user_id={user_id}")
     
     try:
-        orders = OrderManager.get_all_orders(user_id=user_id)
+        # ✅ AWAIT the async manager method
+        # ✅ Pass session and user_id
+        orders = await OrderManager.get_all_orders(
+            session=session,
+            user_id=user_id
+        )
         logger.info(f"Returning {len(orders)} orders for user {user_id}")
         return orders
     except Exception as e:
@@ -44,9 +57,13 @@ async def get_orders(user_id: int = 1):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch orders"
         )
-    
+
+
 @router.post("/", response_model=Order, status_code=status.HTTP_201_CREATED)
-async def create_order(user_id: int = 1):
+async def create_order(
+    user_id: int = 1,
+    session: AsyncSession = Depends(get_async_session_with_commit)  # ← WITH COMMIT
+):
     """
     Create an order from a specific user's current cart items.
     
@@ -60,6 +77,7 @@ async def create_order(user_id: int = 1):
     
     Args:
         user_id: The user's ID (query parameter). Default is 1.
+        session: Database session (injected automatically)
     
     Example:
         POST /orders?user_id=1
@@ -67,7 +85,12 @@ async def create_order(user_id: int = 1):
     logger.info(f"POST /orders - user_id={user_id}")
     
     try:
-        order = OrderManager.create_order(user_id=user_id)
+        # ✅ AWAIT the async manager method
+        # ✅ Pass session and user_id
+        order = await OrderManager.create_order(
+            session=session,
+            user_id=user_id
+        )
         logger.info(
             f"Order created for user {user_id}: "
             f"ID {order.id}, total: ${order.total_amount:.2f}"
@@ -85,9 +108,3 @@ async def create_order(user_id: int = 1):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create order"
         )
-
-
-
-
-
-

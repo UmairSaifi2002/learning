@@ -113,3 +113,6 @@ We can write:
 This is cleaner, shorter, and prevents typos.
 """
 SessionDep = Annotated[Session, Depends(get_session)]
+
+
+

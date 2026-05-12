@@ -1,7 +1,8 @@
 """
-Cart Router
+Cart Router - MySQL Database Version
 
 Handles HTTP requests for cart endpoints.
+All endpoints use async database sessions.
 
 Endpoints:
     GET  /cart              - View cart with items and totals
@@ -9,8 +10,10 @@ Endpoints:
     DELETE /cart/{product_id} - Remove a product from cart
 """
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db import get_async_session, get_async_session_with_commit
 from app.managers.cart_manager import CartManager
 from app.models.schemas import Cart, CartItemAdd, MessageResponse
 from app.utils.loggers import logger
@@ -20,13 +23,18 @@ router = APIRouter(
     tags=["Cart"],
 )
 
+
 @router.get("/", response_model=Cart)
-async def get_cart(user_id: int = 1):
+async def get_cart(
+    user_id: int = 1,
+    session: AsyncSession = Depends(get_async_session)  # ← ASYNC SESSION
+):
     """
     View all items in the cart for a specific user.
     
     Args:
         user_id: The user's ID (query parameter). Default is 1.
+        session: Database session (injected automatically)
     
     Example:
         GET /cart?user_id=1
@@ -35,7 +43,9 @@ async def get_cart(user_id: int = 1):
     logger.info(f"GET /cart - user_id={user_id}")
     
     try:
-        cart = CartManager.get_cart(user_id=user_id)
+        # ✅ AWAIT the async manager method
+        # ✅ Pass session as first argument
+        cart = await CartManager.get_cart(session=session, user_id=user_id)
         logger.info(
             f"Cart for user {user_id}: "
             f"{cart.total_items} items, total: ${cart.total_amount:.2f}"
@@ -48,14 +58,24 @@ async def get_cart(user_id: int = 1):
             detail="Failed to fetch cart"
         )
 
-@router.post("/", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
-async def add_to_cart(item: CartItemAdd, user_id: int = 1):
+
+@router.post(
+    "/",
+    response_model=MessageResponse,
+    status_code=status.HTTP_201_CREATED
+)
+async def add_to_cart(
+    item: CartItemAdd,
+    user_id: int = 1,
+    session: AsyncSession = Depends(get_async_session_with_commit)  # ← WITH COMMIT
+):
     """
     Add a product to a specific user's cart.
     
     Args:
         item: Contains product_id and quantity (request body)
         user_id: The user's ID (query parameter). Default is 1.
+        session: Database session (injected automatically)
     
     Example:
         POST /cart?user_id=1
@@ -67,7 +87,13 @@ async def add_to_cart(item: CartItemAdd, user_id: int = 1):
     )
     
     try:
-        result_message = CartManager.add_to_cart(item, user_id=user_id)
+        # ✅ AWAIT the async manager method
+        # ✅ Pass session AND item_data AND user_id
+        result_message = await CartManager.add_to_cart(
+            session=session,
+            item_data=item,
+            user_id=user_id
+        )
         return MessageResponse(message=result_message)
     except ValueError as e:
         logger.warning(f"Cart validation error: {str(e)}")
@@ -82,14 +108,20 @@ async def add_to_cart(item: CartItemAdd, user_id: int = 1):
             detail="Failed to add item to cart"
         )
 
+
 @router.delete("/{product_id}", response_model=MessageResponse)
-async def remove_from_cart(product_id: int, user_id: int = 1):
+async def remove_from_cart(
+    product_id: int,
+    user_id: int = 1,
+    session: AsyncSession = Depends(get_async_session_with_commit)  # ← WITH COMMIT
+):
     """
     Remove a product from a specific user's cart.
     
     Args:
         product_id: ID of the product to remove (path parameter)
         user_id: The user's ID (query parameter). Default is 1.
+        session: Database session (injected automatically)
     
     Example:
         DELETE /cart/1?user_id=1
@@ -97,7 +129,13 @@ async def remove_from_cart(product_id: int, user_id: int = 1):
     logger.info(f"DELETE /cart/{product_id} - user_id={user_id}")
     
     try:
-        removed = CartManager.remove_from_cart(product_id, user_id=user_id)
+        # ✅ AWAIT the async manager method
+        # ✅ Pass session, product_id, and user_id
+        removed = await CartManager.remove_from_cart(
+            session=session,
+            product_id=product_id,
+            user_id=user_id
+        )
         
         if not removed:
             raise HTTPException(
@@ -116,13 +154,3 @@ async def remove_from_cart(product_id: int, user_id: int = 1):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to remove item from cart"
         )
-
-
-
-
-
-
-
-
-
-
