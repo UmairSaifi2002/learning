@@ -4,16 +4,34 @@ Product Router - MySQL Database Version
 All endpoints now use async database sessions.
 """
 
+"""
+Product Router - API v1
+
+Handles HTTP requests for product endpoints.
+Part of the E-Commerce API v1.
+
+Endpoints:
+    GET    /api/v1/products
+    GET    /api/v1/products/{id}
+    POST   /api/v1/products
+    PUT    /api/v1/products/{id}
+    DELETE /api/v1/products/{id}
+"""
+
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi_ecommerce.app.db.v1 import get_async_session, get_async_session_with_commit
-from fastapi_ecommerce.app.managers.v1.product_manager import ProductManager
-from fastapi_ecommerce.app.models.v1.schemas import ProductCreate, ProductUpdate, Product, MessageResponse
-from fastapi_ecommerce.app.utils.v1.loggers import logger
+from app.db.v1 import get_async_session, get_async_session_with_commit
+from app.managers.v1.product_manager import ProductManager
+from app.models.v1.schemas import ProductCreate, ProductUpdate, Product, MessageResponse
+from app.utils.v1.loggers import logger
+from app.config.v1.settings import  settings
 
-router = APIRouter(prefix="/products", tags=["Products"])
+router = APIRouter(
+    prefix=f"{settings.API_PREFIX}/products", 
+    tags=["Products"]
+)
 
 
 @router.get("/", response_model=List[Product])

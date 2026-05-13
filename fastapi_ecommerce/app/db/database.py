@@ -27,7 +27,7 @@ from typing import AsyncGenerator, Generator
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
-from fastapi_ecommerce.app.config.v1.settings import settings
+from app.config.v1.settings import settings
 
 
 # ============================================

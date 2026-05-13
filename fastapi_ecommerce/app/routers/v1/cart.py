@@ -1,25 +1,31 @@
 """
-Cart Router - MySQL Database Version
+Product Router - API v1
 
-Handles HTTP requests for cart endpoints.
-All endpoints use async database sessions.
+Handles HTTP requests for product endpoints.
+Part of the E-Commerce API v1.
 
 Endpoints:
-    GET  /cart              - View cart with items and totals
-    POST /cart              - Add a product to cart
-    DELETE /cart/{product_id} - Remove a product from cart
+    GET    /api/v1/cart/{id}
+    POST   /api/v1/cart/{id}
+    DELETE /api/v1/cart/{id}
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi_ecommerce.app.db.v1 import get_async_session, get_async_session_with_commit
-from fastapi_ecommerce.app.managers.v1.cart_manager import CartManager
-from fastapi_ecommerce.app.models.v1.schemas import Cart, CartItemAdd, MessageResponse
-from fastapi_ecommerce.app.utils.v1.loggers import logger
+from app.db.v1 import get_async_session, get_async_session_with_commit
+from app.managers.v1.cart_manager import CartManager
+from app.models.v1.schemas import Cart, CartItemAdd, MessageResponse
+from app.utils.v1.loggers import logger
+from app.config.v1.settings import settings
+
+# router = APIRouter(
+#     prefix="/api/v1/cart",
+#     tags=["Cart"],
+# )
 
 router = APIRouter(
-    prefix="/cart",
+    prefix=f"{settings.API_PREFIX}/cart",
     tags=["Cart"],
 )
 

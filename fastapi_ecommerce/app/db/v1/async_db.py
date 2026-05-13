@@ -22,8 +22,8 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
 )
 
-from fastapi_ecommerce.app.config.v1.settings import settings
-from fastapi_ecommerce.app.utils.v1.loggers import logger
+from app.config.v1.settings import settings
+from app.utils.v1.loggers import logger
 
 
 # ============================================

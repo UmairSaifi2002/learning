@@ -30,6 +30,16 @@ class Settings(BaseSettings):
     3. .env file
     4. Default values in class definition
     """
+
+    # ============================================
+    # API VERSIONING
+    # ============================================
+
+    API_VERSION: str = "v1"
+    """Current API version. Used in URL prefixes and documentation."""
+
+    API_PREFIX: str = "/api/v1"
+    """Base prefix for all API endpoints."""
     
     # ============================================
     # ENVIRONMENT

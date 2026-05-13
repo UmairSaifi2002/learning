@@ -1,25 +1,31 @@
 """
-Order Router - MySQL Database Version
+Odeers Router - API v1
 
-Handles HTTP requests for order endpoints.
-All endpoints use async database sessions.
+Handles HTTP requests for product endpoints.
+Part of the E-Commerce API v1.
 
 Endpoints:
-    GET  /orders  - View all placed orders
-    POST /orders  - Create an order from current cart
+    GET    /api/v1/orders/{id}
+    POST   /api/v1/products
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi_ecommerce.app.db.v1 import get_async_session, get_async_session_with_commit
-from fastapi_ecommerce.app.managers.v1.order_manager import OrderManager
-from fastapi_ecommerce.app.models.v1.schemas import Order
-from fastapi_ecommerce.app.utils.v1.loggers import logger
+from app.db.v1 import get_async_session, get_async_session_with_commit
+from app.managers.v1.order_manager import OrderManager
+from app.models.v1.schemas import Order
+from app.utils.v1.loggers import logger
+from app.config.v1.settings import settings
+
+# router = APIRouter(
+#     prefix="/api/v1/orders",
+#     tags=["Orders"],
+# )
 
 router = APIRouter(
-    prefix="/orders",
+    prefix=f"{settings.API_PREFIX}/orders",
     tags=["Orders"],
 )
 

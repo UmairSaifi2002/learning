@@ -20,58 +20,60 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Import all routers
 # Each router file contains related endpoints
-from fastapi_ecommerce.app.routers.v1 import users
+from app.routers.v1 import users
 
 # Adding middleware for timing requests
-from fastapi_ecommerce.app.middleware.v1.timing import add_process_time_header
+from app.middleware.v1.timing import add_process_time_header
 
 # Import database session and table creation function
 # from app.db.session import create_db_and_tables, engine
 # from app.db.database import create_tables, sync_engine, async_engine
-from fastapi_ecommerce.app.db.v1.sync import create_tables, sync_engine
-from fastapi_ecommerce.app.db.v1.async_db import async_engine
+from app.db.v1.sync import create_tables, sync_engine
+from app.db.v1.async_db import async_engine
 
 # Import logger for structured logging
-from fastapi_ecommerce.app.utils.v1.loggers import logger
+from app.utils.v1.loggers import logger
 
 # Import settings for application configuration
-from fastapi_ecommerce.app.config.v1.settings import settings
-from fastapi_ecommerce.app.routers.v1 import cart, orders, products
+from app.config.v1.settings import settings
+from app.routers.v1 import cart, orders, products
 
 
 # ============================================
-def configure_cors(app):
-    """
-    Configure CORS middleware for the FastAPI application.
+# Here is the cors configuration function written
+# but we donot use this function as we implemented it in a main app function
+# def configure_cors(app):
+#     """
+#     Configure CORS middleware for the FastAPI application.
     
-    CORS middleware runs on EVERY request.
-    It adds headers that tell browsers:
-    "This API accepts requests from these origins."
+#     CORS middleware runs on EVERY request.
+#     It adds headers that tell browsers:
+#     "This API accepts requests from these origins."
     
-    Args:
-        app: FastAPI application instance
+#     Args:
+#         app: FastAPI application instance
     
-    How it works:
-    1. Browser sends "preflight" OPTIONS request
-    2. CORS middleware responds with allowed origins/methods/headers
-    3. Browser checks: "Is my origin in the allowed list?"
-    4. If yes → Browser sends the actual request
-    5. If no → Browser blocks the request (shows CORS error in console)
-    """
+#     How it works:
+#     1. Browser sends "preflight" OPTIONS request
+#     2. CORS middleware responds with allowed origins/methods/headers
+#     3. Browser checks: "Is my origin in the allowed list?"
+#     4. If yes → Browser sends the actual request
+#     5. If no → Browser blocks the request (shows CORS error in console)
+#     """
     
-    # Get allowed origins from .env, or use safe defaults
-    # If .env has CORS_ORIGINS=*, split gives ["*"]
-    # If .env is missing, default to localhost origins
-    origins_str = settings.CORS_ORIGINS or "http://localhost:3000,http://localhost:8000"
-    origins = [origin.strip() for origin in origins_str.split(",")]
+#     # Get allowed origins from .env, or use safe defaults
+#     # If .env has CORS_ORIGINS=*, split gives ["*"]
+#     # If .env is missing, default to localhost origins
+#     origins_str = settings.CORS_ORIGINS or "http://localhost:3000,http://localhost:8000"
+#     origins = [origin.strip() for origin in origins_str.split(",")]
     
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,       # Which domains can call this API
-        allow_credentials=True,       # Allow cookies/auth headers
-        allow_methods=["*"],          # Allow all HTTP methods (GET, POST, etc.)
-        allow_headers=["*"],          # Allow all request headers
-    )
+#     app.add_middleware(
+#         CORSMiddleware,
+#         allow_origins=origins,       # Which domains can call this API
+#         allow_credentials=True,       # Allow cookies/auth headers
+#         allow_methods=["*"],          # Allow all HTTP methods (GET, POST, etc.)
+#         allow_headers=["*"],          # Allow all request headers
+#     )
 # ============================================
 
 
@@ -199,7 +201,7 @@ def lifespan(app: FastAPI):
     
     try:
         sync_engine.dispose() # <---- Dispose sync engine to close all connections in the pool
-        # async_engine.dispose() # <---- Dispose async engine as well
+        async_engine.dispose() # <---- Dispose async engine as well
         
         if settings.IS_DEVELOPMENT:
             logger.info("📊 Database connections closed")
@@ -257,7 +259,8 @@ def create_app() -> FastAPI:
         """,
         docs_url="/docs",
         redoc_url="/redoc",
-        openapi_url="/openapi.json",
+        #openapi_url="/openapi.json",
+        openapi_url=f"{settings.API_PREFIX}/openapi.json",  # Versioned OpenAPI
         lifespan=lifespan,  # Attach the lifespan function for startup/shutdown handling
     )
     

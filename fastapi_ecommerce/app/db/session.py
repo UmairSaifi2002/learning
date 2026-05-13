@@ -16,7 +16,7 @@ from typing import Annotated, Generator
 from dotenv import load_dotenv
 from fastapi import Depends
 from sqlmodel import Session, SQLModel, create_engine
-from fastapi_ecommerce.app.config.v1.settings import settings
+from app.config.v1.settings import settings
 
 
 # ============================================

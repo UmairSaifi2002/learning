@@ -8,9 +8,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from fastapi_ecommerce.app.models.v1.db_models import Order, OrderItem, Product, CartItem
-from fastapi_ecommerce.app.models.v1.schemas import Order as OrderSchema, OrderItem as OrderItemSchema
-from fastapi_ecommerce.app.utils.v1.loggers import logger
+from app.models.v1.db_models import Order, OrderItem, Product, CartItem
+from app.models.v1.schemas import Order as OrderSchema, OrderItem as OrderItemSchema
+from app.utils.v1.loggers import logger
 
 
 class OrderManager:
@@ -28,6 +28,9 @@ class OrderManager:
         )
         result = await session.execute(query)
         orders = result.scalars().all()
+
+        # if not orders:
+        #     raise ValueError(f"User with {user_id} have no Orders yet.")
         
         # Convert to Pydantic schema
         return [

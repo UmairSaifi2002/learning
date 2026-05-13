@@ -2,16 +2,34 @@
 User Router - MySQL Database Version
 """
 
+"""
+Oders Router - API v1
+
+Handles HTTP requests for Orders endpoints.
+Part of the E-Commerce API v1.
+
+Endpoints:
+    GET    /api/v1/users
+    GET    /api/v1/users/{id}
+    POST   /api/v1/users/
+    PUT    /api/v1/users/{id}
+    DELETE /api/v1/users/{id}
+"""
+
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi_ecommerce.app.db.v1 import get_async_session, get_async_session_with_commit
-from fastapi_ecommerce.app.managers.v1.user_manager import UserManager
-from fastapi_ecommerce.app.models.v1.schemas import UserCreate, UserUpdate, User, MessageResponse
-from fastapi_ecommerce.app.utils.v1.loggers import logger
+from app.db.v1 import get_async_session, get_async_session_with_commit
+from app.managers.v1.user_manager import UserManager
+from app.models.v1.schemas import UserCreate, UserUpdate, User, MessageResponse
+from app.utils.v1.loggers import logger
+from app.config.v1.settings import settings
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(
+    prefix=f"{settings.API_PREFIX}/users", 
+    tags=["Users"]
+)
 
 
 @router.get("/", response_model=List[User])
