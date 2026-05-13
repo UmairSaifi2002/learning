@@ -29,7 +29,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 
-from app.db.base import Base
+from fastapi_ecommerce.app.db.v1.base import Base
 
 
 # ============================================

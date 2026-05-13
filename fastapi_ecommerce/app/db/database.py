@@ -27,7 +27,7 @@ from typing import AsyncGenerator, Generator
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
-from app.config.settings import settings
+from fastapi_ecommerce.app.config.v1.settings import settings
 
 
 # ============================================
@@ -188,7 +188,7 @@ def create_tables():
     We call it once during startup, not during request handling.
     """
     # Import all models to register them in Base.metadata
-    from app.models import db_models  # Import all model files to register them
+    from fastapi_ecommerce.app.models.v1 import db_models  # Import all model files to register them
     Base.metadata.create_all(bind=sync_engine) # <------- here we declare which engine we want to use for creating tables. We use the synchronous engine because create_all is a synchronous operation.
 
 

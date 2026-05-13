@@ -8,10 +8,10 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db import get_async_session, get_async_session_with_commit
-from app.managers.product_manager import ProductManager
-from app.models.schemas import ProductCreate, ProductUpdate, Product, MessageResponse
-from app.utils.loggers import logger
+from fastapi_ecommerce.app.db.v1 import get_async_session, get_async_session_with_commit
+from fastapi_ecommerce.app.managers.v1.product_manager import ProductManager
+from fastapi_ecommerce.app.models.v1.schemas import ProductCreate, ProductUpdate, Product, MessageResponse
+from fastapi_ecommerce.app.utils.v1.loggers import logger
 
 router = APIRouter(prefix="/products", tags=["Products"])
 

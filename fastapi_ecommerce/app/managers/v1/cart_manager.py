@@ -7,9 +7,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.db_models import CartItem, Product, User
-from app.models.schemas import CartItemAdd, Cart, CartItem as CartItemSchema
-from app.utils.loggers import logger
+from fastapi_ecommerce.app.models.v1.db_models import CartItem, Product, User
+from fastapi_ecommerce.app.models.v1.schemas import CartItemAdd, Cart, CartItem as CartItemSchema
+from fastapi_ecommerce.app.utils.v1.loggers import logger
 
 
 class CartManager:

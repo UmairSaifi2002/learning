@@ -9,9 +9,9 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.db_models import Product
-from app.models.schemas import ProductCreate, ProductUpdate
-from app.utils.loggers import logger
+from fastapi_ecommerce.app.models.v1.db_models import Product
+from fastapi_ecommerce.app.models.v1.schemas import ProductCreate, ProductUpdate
+from fastapi_ecommerce.app.utils.v1.loggers import logger
 
 
 class ProductManager:

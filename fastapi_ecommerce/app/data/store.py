@@ -1,5 +1,5 @@
 from typing import Dict, List
-from app.models.schemas import CartItem
+from fastapi_ecommerce.app.models.v1.schemas import CartItem
 
 next_user_id: int = 3
 next_product_id: int = 4

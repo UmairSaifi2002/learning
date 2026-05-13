@@ -8,9 +8,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.db_models import Order, OrderItem, Product, CartItem
-from app.models.schemas import Order as OrderSchema, OrderItem as OrderItemSchema
-from app.utils.loggers import logger
+from fastapi_ecommerce.app.models.v1.db_models import Order, OrderItem, Product, CartItem
+from fastapi_ecommerce.app.models.v1.schemas import Order as OrderSchema, OrderItem as OrderItemSchema
+from fastapi_ecommerce.app.utils.v1.loggers import logger
 
 
 class OrderManager:

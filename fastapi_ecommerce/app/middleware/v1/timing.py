@@ -12,7 +12,7 @@ This is useful for:
 
 import time
 from fastapi import Request
-from app.utils.loggers import logger
+from fastapi_ecommerce.app.utils.v1.loggers import logger
 
 
 async def add_process_time_header(request: Request, call_next):

@@ -20,9 +20,9 @@ from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-from app.config.settings import settings
-from app.db.base import Base
-from app.utils.loggers import logger
+from fastapi_ecommerce.app.config.v1.settings import settings
+from fastapi_ecommerce.app.db.v1.base import Base
+from fastapi_ecommerce.app.utils.v1.loggers import logger
 
 # ============================================
 # SYNCHRONOUS DATABASE URL
@@ -140,7 +140,7 @@ def create_tables():
     # Import models here to ensure they're registered in Base.metadata
     # If imported at the top, might cause circular imports
     # Importing here guarantees models are loaded before create_all runs
-    from app.models import db_models
+    from fastapi_ecommerce.app.models.v1 import db_models
 
     logger.info("📊 Creating database tables (if they don't exist)...")
     Base.metadata.create_all(bind = sync_engine)
@@ -159,7 +159,7 @@ def drop_table():
     - All tables are removed from the database
     """
 
-    from app.models import db_models
+    from fastapi_ecommerce.app.models.v1 import db_models
     logger.warning("⚠️  Dropping all database tables!")
     Base.metadata.drop_all(bind=sync_engine)
     logger.warning("❌ All tables dropped")

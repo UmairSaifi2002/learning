@@ -20,22 +20,23 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Import all routers
 # Each router file contains related endpoints
-from app.routers import products, users, cart, orders
+from fastapi_ecommerce.app.routers.v1 import users
 
 # Adding middleware for timing requests
-from app.middleware.timing import add_process_time_header
+from fastapi_ecommerce.app.middleware.v1.timing import add_process_time_header
 
 # Import database session and table creation function
 # from app.db.session import create_db_and_tables, engine
 # from app.db.database import create_tables, sync_engine, async_engine
-from app.db.sync import create_tables, sync_engine
-from app.db.async_db import async_engine
+from fastapi_ecommerce.app.db.v1.sync import create_tables, sync_engine
+from fastapi_ecommerce.app.db.v1.async_db import async_engine
 
 # Import logger for structured logging
-from app.utils.loggers import logger
+from fastapi_ecommerce.app.utils.v1.loggers import logger
 
 # Import settings for application configuration
-from app.config.settings import settings
+from fastapi_ecommerce.app.config.v1.settings import settings
+from fastapi_ecommerce.app.routers.v1 import cart, orders, products
 
 
 # ============================================

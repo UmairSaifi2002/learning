@@ -6,9 +6,9 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.db_models import User
-from app.models.schemas import UserCreate, UserUpdate
-from app.utils.loggers import logger
+from fastapi_ecommerce.app.models.v1.db_models import User
+from fastapi_ecommerce.app.models.v1.schemas import UserCreate, UserUpdate
+from fastapi_ecommerce.app.utils.v1.loggers import logger
 
 
 class UserManager:

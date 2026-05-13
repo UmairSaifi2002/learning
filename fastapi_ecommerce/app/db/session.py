@@ -16,7 +16,7 @@ from typing import Annotated, Generator
 from dotenv import load_dotenv
 from fastapi import Depends
 from sqlmodel import Session, SQLModel, create_engine
-from app.config.settings import settings
+from fastapi_ecommerce.app.config.v1.settings import settings
 
 
 # ============================================
@@ -62,7 +62,7 @@ def create_db_and_tables():
     
     This function should be called ONCE during application startup.
     """
-    from app.models import db_models  # ← This triggers registration
+    from fastapi_ecommerce.app.models.v1 import db_models  # ← This triggers registration
     SQLModel.metadata.create_all(engine)
 
 # ============================================
